@@ -1,0 +1,136 @@
+import { serveStatic } from '@hono/node-server/serve-static'
+import { EnvOptions, IChoice, IQuestion, PublishedElection, VocdoniSDKClient } from '@vocdoni/sdk'
+import { Frog } from 'frog'
+import { ImageResponse } from 'hono-og'
+import { Layout } from './components/Layout'
+import { Question, Results } from './components/Question'
+
+export const app = new Frog({
+  dev: {
+    enabled: process.env.NODE_ENV === 'development',
+  },
+  imageOptions: {
+    emoji: 'fluent',
+  },
+  // Supply a Hub API URL to enable frame verification.
+  // hubApiUrl: 'https://api.hub.wevm.dev',
+})
+
+app.use('/*', serveStatic({ root: './public' }))
+
+const getParamsToJson = (c) => {
+  const body = {
+    type: c.req.query('type'),
+    question: c.req.query('question'),
+    choices: c.req.queries('choice'),
+    results: [],
+    voteCount: 0,
+    maxCensusSize: 0,
+  }
+
+  const results = c.req.queries('result')
+  if (results && results.length > 0) {
+    body.results = results
+  }
+  const voteCount = c.req.query('voteCount')
+  if (voteCount) {
+    body.voteCount = parseInt(voteCount, 10)
+  }
+  const maxCensusSize = c.req.query('maxCensusSize')
+  if (maxCensusSize) {
+    body.maxCensusSize = parseInt(maxCensusSize, 10)
+  }
+
+  return body
+}
+const iresponse = (contents: JSX.Element) => new ImageResponse(contents, { emoji: 'fluent' })
+
+const imageGenerationService = (body) => {
+  switch (body.type) {
+    case 'question': {
+      const question: Partial<IQuestion> = {
+        choices: body.choices.map((choice) => ({ title: { default: choice } } as IChoice)),
+      }
+      return iresponse(<Question title={body.question} question={question} />)
+    }
+    case 'results': {
+      const question: Partial<IQuestion> = {
+        choices: body.choices.map((choice) => ({ title: { default: choice } } as IChoice)),
+      }
+      const election: Partial<PublishedElection> = {
+        title: {
+          default: body.question,
+        },
+        questions: [question],
+        results: [body.results],
+        voteCount: body.voteCount,
+        maxCensusSize: body.maxCensusSize,
+      }
+      return iresponse(<Results election={election} />)
+    }
+
+    default:
+      return iresponse(
+        <Layout>
+          <p tw='text-4xl'>You forgot to specify the type, or specified an invalid one</p>
+        </Layout>
+      )
+  }
+}
+
+app.hono.get('/image', (c) => {
+  const body = getParamsToJson(c)
+  try {
+    return imageGenerationService(body)
+  } catch (e) {
+    return c.res.json(e)
+  }
+})
+
+app.hono.post('/image', async (c) => {
+  const body = await c.req.json()
+  try {
+    return imageGenerationService(body)
+  } catch (e) {
+    return c.res.json(e)
+  }
+})
+
+app.frame('/', (c) => {
+  return c.res({
+    image: (
+      <Layout>
+        <div tw='text-5xl text-center'>
+          Use @vocdoni poll bot via farcaster or go to farcaster.vote to start creating
+          decentralized polls
+        </div>
+      </Layout>
+    ),
+  })
+})
+
+app.frame('/poll/:pid', async (c) => {
+  const pid = c.req.param('pid')
+  const client = new VocdoniSDKClient({
+    env: EnvOptions.STG,
+  })
+  const election = await client.fetchElection(pid)
+
+  return c.res({
+    image: <Question title={election.title.default} question={election.questions[0]} />,
+  })
+})
+
+app.frame('/poll/results/:pid', async (c) => {
+  const pid = c.req.param('pid')
+  const client = new VocdoniSDKClient({
+    env: EnvOptions.STG,
+  })
+  const election = await client.fetchElection(pid)
+
+  console.log(election)
+
+  return c.res({
+    image: <Results election={election} />,
+  })
+})

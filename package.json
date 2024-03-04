@@ -1,0 +1,19 @@
+{
+  "name": "fc-vocdoni-polls",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "frog dev"
+  },
+  "dependencies": {
+    "@hono/node-server": "latest",
+    "@vocdoni/sdk": "^0.7.5",
+    "frog": "latest",
+    "hono": "^4",
+    "hono-og": "^0.0.17",
+    "web-worker": "1.2.0"
+  },
+  "devDependencies": {
+    "typescript": "latest"
+  }
+}
