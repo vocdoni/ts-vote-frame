@@ -12,7 +12,7 @@ export const Question = ({
   const qlength = question.choices.reduce((prev, curr) => prev + curr.title.default.length, 0)
   const qfs = calculateFontSize(qlength, 5, 7, 200)
   return (
-    <Layout>
+    <Layout icon='🗳️'>
       <div tw={`text-${fs}xl mb-6 grow`}>{title}</div>
       <ul tw={`text-${qfs}xl flex-col grow mr-80`}>
         {question.choices.map((choice, i) => (
@@ -48,7 +48,7 @@ export const Results = ({ election }: { election: Partial<PublishedElection> }) 
   const weight = rnum.reduce((prev, curr) => prev + curr, 0)
 
   return (
-    <Layout>
+    <Layout icon='📊'>
       <div tw={`text-${tfs}xl`}>{election.title.default}</div>
       {weight <= 0 ? (
         <p tw='text-6xl'>No results yet</p>

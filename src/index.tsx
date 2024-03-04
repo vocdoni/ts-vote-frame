@@ -1,3 +1,4 @@
+import { serve } from '@hono/node-server'
 import { serveStatic } from '@hono/node-server/serve-static'
 import { EnvOptions, IChoice, IQuestion, PublishedElection, VocdoniSDKClient } from '@vocdoni/sdk'
 import { Frog } from 'frog'
@@ -21,17 +22,15 @@ app.use('/*', serveStatic({ root: './public' }))
 const getParamsToJson = (c) => {
   const body = {
     type: c.req.query('type'),
-    question: c.req.query('question'),
-    choices: c.req.queries('choice'),
-    results: [],
+    question: c.req.query('question') || '',
+    choices: c.req.queries('choice') || [],
+    results: c.req.queries('result') || [],
     voteCount: 0,
     maxCensusSize: 0,
+    error: c.req.query('error') || '',
+    info: c.req.queries('info') || [],
   }
 
-  const results = c.req.queries('result')
-  if (results && results.length > 0) {
-    body.results = results
-  }
   const voteCount = c.req.query('voteCount')
   if (voteCount) {
     body.voteCount = parseInt(voteCount, 10)
@@ -54,19 +53,40 @@ const imageGenerationService = (body) => {
       return iresponse(<Question title={body.question} question={question} />)
     }
     case 'results': {
-      const question: Partial<IQuestion> = {
-        choices: body.choices.map((choice) => ({ title: { default: choice } } as IChoice)),
-      }
       const election: Partial<PublishedElection> = {
         title: {
           default: body.question,
         },
-        questions: [question],
+        questions: [
+          {
+            choices: body.choices.map((choice) => ({ title: { default: choice } } as IChoice)),
+          },
+        ],
         results: [body.results],
         voteCount: body.voteCount,
         maxCensusSize: body.maxCensusSize,
       }
       return iresponse(<Results election={election} />)
+    }
+
+    case 'error': {
+      return iresponse(
+        <Layout style={{ padding: 0, margin: 0 }}>
+          <img src='http://localhost:5173/images/error.png' />
+          <div tw='text-4xl absolute bottom-8 left-10 min-h-10 text-rose-700'>{body.error}</div>
+        </Layout>
+      )
+    }
+
+    case 'info': {
+      return iresponse(
+        <Layout>
+          <div tw='text-6xl mb-6'>Vocdoni secured poll</div>
+          {body.info.map((line) => (
+            <div tw='text-5xl mb-1'>{line}</div>
+          ))}
+        </Layout>
+      )
     }
 
     default:
@@ -83,7 +103,7 @@ app.hono.get('/image', (c) => {
   try {
     return imageGenerationService(body)
   } catch (e) {
-    return c.res.json(e)
+    return c.res.json({ error: e.message })
   }
 })
 
@@ -92,7 +112,7 @@ app.hono.post('/image', async (c) => {
   try {
     return imageGenerationService(body)
   } catch (e) {
-    return c.res.json(e)
+    return c.res.json({ error: e.message })
   }
 })
 
@@ -128,9 +148,12 @@ app.frame('/poll/results/:pid', async (c) => {
   })
   const election = await client.fetchElection(pid)
 
-  console.log(election)
-
   return c.res({
     image: <Results election={election} />,
   })
+})
+
+serve({
+  fetch: app.fetch,
+  port: process.env.PORT || 5173,
 })

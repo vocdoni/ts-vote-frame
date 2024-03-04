@@ -1,13 +1,24 @@
-export const Layout = ({ children }) => (
-  <div tw='bg-[#17101f] flex flex-col mx-auto px-10 py-8 h-screen w-screen text-slate-100'>
+export const Layout = ({ children, icon, ...props }) => (
+  <div
+    tw='bg-[#17101f] flex flex-col mx-auto px-10 py-8 h-screen w-screen text-slate-100'
+    {...props}
+  >
     {children}
+    <SecuredBy icon={icon} />
+  </div>
+)
+
+const SecuredBy = ({ icon }) => {
+  if (!icon) return <></>
+
+  return (
     <div tw='flex flex-col absolute bottom-8 right-10 items-end'>
-      <div tw='text-8xl'>📊</div>
+      <div tw='text-8xl'>{icon}</div>
       <div>vote secured with</div>
       <VocdoniLogo />
     </div>
-  </div>
-)
+  )
+}
 
 export const VocdoniLogo = () => (
   <svg
