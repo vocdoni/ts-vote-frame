@@ -5,6 +5,7 @@ import { Frog } from 'frog'
 import { ImageResponse } from 'hono-og'
 import { Layout } from './components/Layout'
 import { Question, Results } from './components/Question'
+import { APP_BASE_URL, PORT, VOCDONI_ENV } from './constants'
 
 export const app = new Frog({
   dev: {
@@ -72,7 +73,7 @@ const imageGenerationService = (body) => {
     case 'error': {
       return iresponse(
         <Layout style={{ padding: 0, margin: 0 }}>
-          <img src='http://localhost:5173/images/error.png' />
+          <img src={`${APP_BASE_URL}/images/error.png`} />
           <div tw='text-4xl absolute bottom-8 left-10 min-h-10 text-rose-700'>{body.error}</div>
         </Layout>
       )
@@ -132,7 +133,7 @@ app.frame('/', (c) => {
 app.frame('/poll/:pid', async (c) => {
   const pid = c.req.param('pid')
   const client = new VocdoniSDKClient({
-    env: EnvOptions.STG,
+    env: VOCDONI_ENV as EnvOptions,
   })
   const election = await client.fetchElection(pid)
 
@@ -144,7 +145,7 @@ app.frame('/poll/:pid', async (c) => {
 app.frame('/poll/results/:pid', async (c) => {
   const pid = c.req.param('pid')
   const client = new VocdoniSDKClient({
-    env: EnvOptions.STG,
+    env: VOCDONI_ENV as EnvOptions,
   })
   const election = await client.fetchElection(pid)
 
@@ -155,5 +156,5 @@ app.frame('/poll/results/:pid', async (c) => {
 
 serve({
   fetch: app.fetch,
-  port: process.env.PORT || 5173,
+  port: PORT,
 })
