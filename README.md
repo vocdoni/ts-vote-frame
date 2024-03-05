@@ -104,8 +104,6 @@ curl -X POST -H "Content-Type: application/json" -d '{
 }' "http://localhost:5173/image"
 ```
 
-![results](https://img.frame.vote/image?type=results&question=How%20do%20you%20like%20kiwi?&choice=Skin%20ON&choice=Skin%20OFF&choice=Dafuq,%20Kiwi???&result=8&result=3&result=9&voteCount=10&maxCensusSize=100)
-
 Frames
 ======
 
