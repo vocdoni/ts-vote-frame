@@ -38,8 +38,8 @@ Expects a `error` property with the error message.
 
 ```bash
 curl -X POST -H "Content-Type: application/json" -d '{
-	"type": "error",
-	"error": "Invalid process id"
+  "type": "error",
+  "error": "Invalid process id"
 }' "http://localhost:5173/image"
 ```
 
@@ -52,8 +52,8 @@ Expects an `info` property of type `[]string`, which will be displayed as a list
 
 ```bash
 curl -X POST -H "Content-Type: application/json" -d '{
-	"info": "info",
-	"info": [
+  "info": "info",
+  "info": [
     "first line",
     "second line",
     "third line",
@@ -71,13 +71,13 @@ Expects `question` (`string`) and `choices` (`[]string`):
 
 ```bash
 curl -X POST -H "Content-Type: application/json" -d '{
-	"type": "question",
-	"question": "How do you like kiwi?",
-	"choices": [
-		"Skin ON",
-		"Skin OFF",
-		"Dafuq, Kiwi???"
-	]
+  "type": "question",
+  "question": "How do you like kiwi?",
+  "choices": [
+    "Skin ON",
+    "Skin OFF",
+    "Dafuq, Kiwi???"
+  ]
 }' "http://localhost:5173/image"
 ```
 
@@ -91,16 +91,16 @@ Expects everything from `question` + `results` (`[]string`), `voteCount` (`numbe
 
 ```bash
 curl -X POST -H "Content-Type: application/json" -d '{
-	"type": "results",
-	"question": "How do you like kiwi?",
-	"choices": [
-		"Skin ON",
-		"Skin OFF",
-		"Dafuq, Kiwi???"
-	],
-	"results": ["8", "3", "9"],
-	"voteCount": 10,
-	"maxCensusSize": 100
+  "type": "results",
+  "question": "How do you like kiwi?",
+  "choices": [
+    "Skin ON",
+    "Skin OFF",
+    "Dafuq, Kiwi???"
+  ],
+  "results": ["8", "3", "9"],
+  "voteCount": 10,
+  "maxCensusSize": 100
 }' "http://localhost:5173/image"
 ```
 
