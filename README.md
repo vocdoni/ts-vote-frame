@@ -9,7 +9,16 @@ pnpm i
 pnpm dev
 ```
 
+Head to http://localhost:5173
+
 Saldy the HMR does not work when using frog with node.js, so you'll have to stop and start the server between changes, manually (even tho the console will say "page reload").
+
+Environment vars
+----------------
+
+- `PORT` - Port to listen to. Defaults to `5173`.
+- `APP_BASE_URL` - Base URL for the app. Defaults to `http://localhost:${PORT}`
+- `VOCDONI_ENV` - Environment to use for vocdoni. Defaults to `stg`.
 
 Usage
 =====
@@ -97,4 +106,10 @@ curl -X POST -H "Content-Type: application/json" -d '{
 
 ![results](https://img.frame.vote/image?type=results&question=How%20do%20you%20like%20kiwi?&choice=Skin%20ON&choice=Skin%20OFF&choice=Dafuq,%20Kiwi???&result=8&result=3&result=9&voteCount=10&maxCensusSize=100)
 
-Head to http://localhost:5173
+Frames
+======
+
+This project also has some frames calls you can use to render images based on vochain data.
+
+- `/poll/:pid` - Renders a poll frame based on the specified poll id.
+- `/poll/results/:pid` - Renders a poll results frame based on the specified poll id.
