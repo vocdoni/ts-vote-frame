@@ -26,19 +26,29 @@ const getParamsToJson = (c) => {
     question: c.req.query('question') || '',
     choices: c.req.queries('choice') || [],
     results: c.req.queries('result') || [],
-    voteCount: 0,
-    maxCensusSize: 0,
+    voteCount: c.req.query('voteCount') || 0,
+    maxCensusSize: c.req.query('maxCensusSize') || 0,
     error: c.req.query('error') || '',
     info: c.req.queries('info') || [],
   }
 
-  const voteCount = c.req.query('voteCount')
-  if (voteCount) {
+  if (body.voteCount) {
     body.voteCount = parseInt(voteCount, 10)
   }
-  const maxCensusSize = c.req.query('maxCensusSize')
-  if (maxCensusSize) {
+  if (body.maxCensusSize) {
     body.maxCensusSize = parseInt(maxCensusSize, 10)
+  }
+  if (body.question.length) {
+    body.question = decodeURIComponent(body.question)
+  }
+  if (body.choices.length) {
+    body.choices = body.choices.map((choice) => decodeURIComponent(choice))
+  }
+  if (body.info.length) {
+    body.info = body.info.map((info) => decodeURIComponent(info))
+  }
+  if (body.error.length) {
+    body.error = decodeURIComponent(body.error)
   }
 
   return body
