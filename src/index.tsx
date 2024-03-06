@@ -33,10 +33,10 @@ const getParamsToJson = (c) => {
   }
 
   if (body.voteCount) {
-    body.voteCount = parseInt(voteCount, 10)
+    body.voteCount = parseInt(body.voteCount, 10)
   }
   if (body.maxCensusSize) {
-    body.maxCensusSize = parseInt(maxCensusSize, 10)
+    body.maxCensusSize = parseInt(body.maxCensusSize, 10)
   }
   if (body.question.length) {
     body.question = decodeURIComponent(body.question)
