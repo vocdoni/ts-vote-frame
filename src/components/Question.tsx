@@ -56,11 +56,13 @@ export const Results = ({ election }: { election: Partial<PublishedElection> }) 
     <Layout icon='📊'>
       <div tw='flex flex-col grow'>
         <div tw={`text-${tfs}xl`}>{election.title.default}</div>
-        {weight > 0 && (
+        {weight > 0 ? (
           <div tw={`text-${tfs - 1}xl mt-2 mb-4 flex`}>
             Votes: {election.voteCount}
             <Turnout election={election} /> | Weight: {weight}
           </div>
+        ) : (
+          <>{/* vercel-og has serious issues with common react logic */}</>
         )}
       </div>
       <div tw='flex flex-col grow'>
@@ -91,6 +93,8 @@ export const Results = ({ election }: { election: Partial<PublishedElection> }) 
 }
 
 const Turnout = ({ election }: { election: Partial<PublishedElection> }) => {
+  if (!election.voteCount) return <></>
+
   const turnOut = Math.round((election.voteCount / election.maxCensusSize) * 1000) / 10
 
   // returning null does not work for some reason
