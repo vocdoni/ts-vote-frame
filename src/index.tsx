@@ -1,11 +1,48 @@
 import { serve } from '@hono/node-server'
 import { serveStatic } from '@hono/node-server/serve-static'
+import { Resvg } from '@resvg/resvg-js'
 import { EnvOptions, IChoice, IQuestion, PublishedElection, VocdoniSDKClient } from '@vocdoni/sdk'
+import emojiRegex from 'emoji-regex'
 import { Frog } from 'frog'
 import { ImageResponse } from 'hono-og'
+import fs from 'node:fs'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
+import satori from 'satori'
 import { Layout } from './components/Layout'
 import { Question, Results } from './components/Question'
 import { APP_BASE_URL, PORT, VOCDONI_ENV } from './constants'
+import { languageFontMap } from './fonts'
+import { toReactNode } from './utils'
+
+const emReg = new RegExp(emojiRegex(), '')
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+
+const inter = fs.readFileSync('fonts/inter.ttf')
+const notosans = fs.readFileSync('fonts/Noto+Sans.ttf')
+
+const readFile = (file: string) =>
+  new Promise((resolve, reject) => {
+    fs.readFile(file, (err, data) => {
+      if (err) {
+        return reject(err)
+      }
+      return resolve(data)
+    })
+  })
+
+async function loadEmoji(name) {
+  console.log('trying to load emoji:', name)
+  try {
+    const filePath = path.join('public', 'emojis', `${name}.svg`)
+    return await readFile(filePath)
+  } catch (err) {
+    console.error('Error reading the SVG file:', err)
+    return null
+  }
+}
 
 export const app = new Frog({
   dev: {
@@ -108,6 +145,114 @@ const imageGenerationService = (body) => {
       )
   }
 }
+
+// Helper function to read a font file from disk
+async function readFontFromFile(fontName) {
+  console.log('would load font:', fontName)
+  const fontPath = path.resolve('fonts', `${fontName}.ttf`) // Adjust path and extension as necessary
+  try {
+    return readFile(fontPath)
+  } catch (error) {
+    console.error(`Error reading font file for ${fontName}: ${error}`)
+    return null // Or handle the error as appropriate
+  }
+}
+
+function withCache(fn: Function) {
+  const cache = new Map()
+  return async (...args: string[]) => {
+    const key = args.join(':')
+    if (cache.has(key)) return cache.get(key)
+    const result = await fn(...args)
+    cache.set(key, result)
+    return result
+  }
+}
+
+const loadDynamicAsset = withCache(async (_code, text) => {
+  if (_code === 'emoji') {
+    // It's an emoji, load the image.
+    return `data:image/svg+xml;base64,` + btoa(await loadEmoji(getIconCode(text)))
+  }
+
+  const codes = _code.split('|')
+
+  // Get font names from languageFontMap based on codes
+  const names = codes
+    .map((code) => languageFontMap[code])
+    .filter(Boolean)
+    .flat() // Ensure it's a flat array of strings
+
+  if (names.length === 0) return []
+
+  const fonts = []
+  for (const k of Object.keys(languageFontMap)) {
+    const name = languageFontMap[k]
+    console.log('name:', name, names)
+    const fontData = await readFontFromFile(name)
+    if (fontData) {
+      fonts.push({
+        name: `satori_${name}_fallback`,
+        data: fontData,
+        weight: 400,
+        style: 'normal',
+        lang: k,
+      })
+    }
+  }
+
+  // Here you would encode the font data as needed before returning
+  // For simplicity, assuming fonts array is directly usable or you adjust as per your encoding scheme
+  return fonts
+})
+
+const getIconCode = (code: string): string => {
+  const codePoints = Array.from(code).map((char) => char.codePointAt(0).toString(16).toLowerCase())
+  return codePoints.join('_')
+}
+
+app.hono.get('/test', async (c) => {
+  const pid = '0x6b342d99f21838d2bc91b89928f78cbab3e4b1949e28787ec7a302020000000d'
+  const client = new VocdoniSDKClient({
+    env: EnvOptions.DEV,
+    // api_url: 'https://api2-stg.vocdoni.net',
+  })
+  const election = await client.fetchElection(pid)
+
+  // const img = await satori(toReactNode(<Results election={election} />), {
+  const img = await satori(
+    toReactNode(
+      <Layout>
+        <div tw='text-8xl'>Hello world 🫡❤️‍🔥 Kanjis 暗号 どこのチームですか？ デゲン 🎩 ⬜⬜</div>
+      </Layout>
+    ),
+    {
+      width: 1200,
+      height: 630,
+      embedFont: true,
+      fonts: [
+        {
+          name: 'Inter',
+          data: inter,
+          weight: 400,
+          style: 'normal',
+        },
+        // {
+        //   name: 'NotoSanss',
+        //   data: notosans,
+        //   weight: 400,
+        //   style: 'normal',
+        // },
+      ],
+      graphemeImages: {},
+      loadAdditionalAsset: loadDynamicAsset,
+    }
+  )
+  const resvg = new Resvg(img)
+  c.header('Content-Type', 'image/png')
+  // return png image as response
+  return c.body(resvg.render().asPng())
+})
 
 app.hono.get('/image', (c) => {
   const body = getParamsToJson(c)

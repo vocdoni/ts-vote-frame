@@ -8,13 +8,17 @@
   },
   "dependencies": {
     "@hono/node-server": "latest",
+    "@resvg/resvg-js": "^2.6.0",
     "@vocdoni/sdk": "^0.7.5",
+    "emoji-regex": "^10.3.0",
     "frog": "latest",
     "hono": "^4",
     "hono-og": "^0.0.17",
+    "satori": "^0.10.13",
     "web-worker": "1.2.0"
   },
   "devDependencies": {
+    "fs-extra": "^11.2.0",
     "tsx": "^4.7.1",
     "typescript": "latest"
   }
