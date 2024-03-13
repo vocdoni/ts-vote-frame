@@ -14,7 +14,7 @@ export const Question = ({
   return (
     <Layout icon='🗳️'>
       <div tw={`text-${fs}xl mb-6 grow`}>{title}</div>
-      <ul tw={`text-${qfs}xl flex-col grow mr-80`}>
+      <ul tw={`text-${qfs}xl flex-col grow`}>
         {question.choices.map((choice, i) => (
           <li>
             {i + 1}. {choice.title.default}
@@ -70,7 +70,7 @@ export const Results = ({ election }: { election: Partial<PublishedElection> }) 
           <p tw='text-6xl'>No results yet</p>
         ) : (
           <>
-            <ul tw={`text-${cfs}xl flex-col max-w-screen-sm mr-30`}>
+            <ul tw={`text-${cfs}xl flex-col`}>
               {question.choices.map((choice, i) => {
                 const percent = Math.round((rnum[i] / weight) * 1000) / 10
                 return (
