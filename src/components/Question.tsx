@@ -104,7 +104,7 @@ const Turnout = ({ election }: { election: Partial<PublishedElection> }) => {
   // returning null does not work for some reason
   if (turnOut <= 1) return <></>
 
-  return <>` (${turnOut})`</>
+  return <> ({turnOut})</>
 }
 
 export const calculateFontSize = (
