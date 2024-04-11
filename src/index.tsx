@@ -2,6 +2,8 @@ import { serve } from '@hono/node-server'
 import { serveStatic } from '@hono/node-server/serve-static'
 import { EnvOptions, IChoice, IQuestion, PublishedElection, VocdoniSDKClient } from '@vocdoni/sdk'
 import { Frog } from 'frog'
+import { devtools } from 'frog/dev'
+import { Context } from 'hono'
 import { ImageResponse } from 'hono-og'
 import { Layout } from './components/Layout'
 import { Question, Results } from './components/Question'
@@ -20,32 +22,37 @@ export const app = new Frog({
 
 app.use('/*', serveStatic({ root: './public' }))
 
-const getParamsToJson = (c) => {
+type Body = {
+  type: string
+  question: string
+  choices: string[]
+  results: string[]
+  voteCount: number
+  maxCensusSize: number
+  error: string
+  info: string[]
+}
+
+const getParamsToJson = (c: Context) => {
   const body = {
-    type: c.req.query('type'),
+    type: c.req.query('type') || '',
     question: c.req.query('question') || '',
     choices: c.req.queries('choice') || [],
     results: c.req.queries('result') || [],
-    voteCount: c.req.query('voteCount') || 0,
-    maxCensusSize: c.req.query('maxCensusSize') || 0,
+    voteCount: Number(c.req.query('voteCount')) || 0,
+    maxCensusSize: Number(c.req.query('maxCensusSize')) || 0,
     error: c.req.query('error') || '',
     info: c.req.queries('info') || [],
   }
 
-  if (body.voteCount) {
-    body.voteCount = parseInt(body.voteCount, 10)
-  }
-  if (body.maxCensusSize) {
-    body.maxCensusSize = parseInt(body.maxCensusSize, 10)
-  }
   if (body.question.length) {
     body.question = decodeURIComponent(body.question)
   }
   if (body.choices.length) {
-    body.choices = body.choices.map((choice) => decodeURIComponent(choice))
+    body.choices = body.choices.map((choice: string) => decodeURIComponent(choice))
   }
   if (body.info.length) {
-    body.info = body.info.map((info) => decodeURIComponent(info))
+    body.info = body.info.map((info: string) => decodeURIComponent(info))
   }
   if (body.error.length) {
     body.error = decodeURIComponent(body.error)
@@ -55,10 +62,10 @@ const getParamsToJson = (c) => {
 }
 const iresponse = (contents: JSX.Element) => new ImageResponse(contents, { emoji: 'fluent' })
 
-const imageGenerationService = (body) => {
+const imageGenerationService = (body: Body) => {
   switch (body.type) {
     case 'question': {
-      const question: Partial<IQuestion> = {
+      const question: Pick<IQuestion, 'choices'> = {
         choices: body.choices.map((choice) => ({ title: { default: choice } } as IChoice)),
       }
       return iresponse(<Question title={body.question} question={question} />)
@@ -70,6 +77,7 @@ const imageGenerationService = (body) => {
         },
         questions: [
           {
+            title: { default: body.question },
             choices: body.choices.map((choice) => ({ title: { default: choice } } as IChoice)),
           },
         ],
@@ -113,8 +121,9 @@ app.hono.get('/image', (c) => {
   const body = getParamsToJson(c)
   try {
     return imageGenerationService(body)
-  } catch (e) {
-    return c.res.json({ error: e.message })
+  } catch (e: any) {
+    const error = e.message || 'An error occurred'
+    return c.json({ error })
   }
 })
 
@@ -122,8 +131,9 @@ app.hono.post('/image', async (c) => {
   const body = await c.req.json()
   try {
     return imageGenerationService(body)
-  } catch (e) {
-    return c.res.json({ error: e.message })
+  } catch (e: any) {
+    const error = e.message || 'An error occurred'
+    return c.json({ error })
   }
 })
 
@@ -163,6 +173,10 @@ app.frame('/poll/results/:pid', async (c) => {
     image: <Results election={election} />,
   })
 })
+
+console.log(`Server is running on port ${PORT}`)
+
+devtools(app, { serveStatic })
 
 serve({
   fetch: app.fetch,

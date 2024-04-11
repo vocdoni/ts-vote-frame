@@ -1,4 +1,6 @@
-export const Layout = ({ children, icon, ...props }) => (
+import { PropsWithChildren } from 'frog/jsx'
+
+export const Layout = ({ children, icon, ...props }: PropsWithChildren<any>) => (
   <div
     tw='bg-[#17101f] flex flex-col mx-auto px-10 py-8 h-screen w-screen text-slate-100'
     {...props}
@@ -8,7 +10,7 @@ export const Layout = ({ children, icon, ...props }) => (
   </div>
 )
 
-const SecuredBy = ({ icon }) => {
+const SecuredBy = ({ icon }: { icon: any }) => {
   if (!icon) return <></>
 
   return (

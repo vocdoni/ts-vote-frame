@@ -1,4 +1,4 @@
-import { IQuestion, PublishedElection } from '@vocdoni/sdk'
+import { IChoice, IQuestion, PublishedElection } from '@vocdoni/sdk'
 import { Layout } from './Layout'
 
 export const Question = ({
@@ -26,8 +26,12 @@ export const Question = ({
 }
 
 export const Results = ({ election }: { election: Partial<PublishedElection> }) => {
+  if (!election) return <></>
+  if (!election.questions) return <></>
+  if (!election.title) return <></>
+
   // title font size must vary depending on number of choices
-  const sizes = {
+  const sizes: { [key: number]: number[] } = {
     2: [4, 7],
     3: [3, 7],
     4: [3, 6],
@@ -38,7 +42,7 @@ export const Results = ({ election }: { election: Partial<PublishedElection> }) 
   const [question] = election.questions
   // get choices length
   const clength = question.choices.reduce((prev, curr) => prev + curr.title.default.length, 0)
-  const rsizes = {
+  const rsizes: { [key: number]: number[] } = {
     2: [4, 6],
     3: [3, 6],
     4: [3, 5],
@@ -46,16 +50,16 @@ export const Results = ({ election }: { election: Partial<PublishedElection> }) 
   const [rmin, rmax] = rsizes[election.questions[0].choices.length] || [4, 6]
   const cfs = calculateFontSize(clength, rmin, rmax, 200)
 
-  const [results] = election.results
+  const [results] = election.results as string[][]
   // map results to numbers
-  const rnum: number[] = results.map((result) => parseInt(result, 10))
+  const rnum: number[] = results.map((result: string) => parseInt(result, 10))
   // weights and turn out
   const weight = rnum.reduce((prev, curr) => prev + curr, 0)
 
   return (
     <Layout icon='📊'>
       <div tw='flex flex-col grow'>
-        <div tw={`text-${tfs}xl`}>{election.title.default}</div>
+        <div tw={`text-${tfs}xl`}>{election.title?.default}</div>
         {weight > 0 ? (
           <div tw={`text-${tfs - 1}xl mt-2 mb-4 flex`}>
             Votes: {election.voteCount}
@@ -71,7 +75,7 @@ export const Results = ({ election }: { election: Partial<PublishedElection> }) 
         ) : (
           <>
             <ul tw={`text-${cfs}xl flex-col`}>
-              {question.choices.map((choice, i) => {
+              {question.choices.map((choice: IChoice, i: number) => {
                 const percent = Math.round((rnum[i] / weight) * 1000) / 10
                 return (
                   <li tw='flex-col'>
@@ -93,14 +97,14 @@ export const Results = ({ election }: { election: Partial<PublishedElection> }) 
 }
 
 const Turnout = ({ election }: { election: Partial<PublishedElection> }) => {
-  if (!election.voteCount) return <></>
+  if (!election.voteCount || !election.maxCensusSize) return <></>
 
   const turnOut = Math.round((election.voteCount / election.maxCensusSize) * 1000) / 10
 
   // returning null does not work for some reason
   if (turnOut <= 1) return <></>
 
-  return ` (${turnOut})`
+  return <>` (${turnOut})`</>
 }
 
 export const calculateFontSize = (

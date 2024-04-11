@@ -5,10 +5,12 @@ WORKDIR /app
 COPY package.json pnpm-lock.yaml* ./
 
 RUN npm install -g pnpm
-RUN pnpm install
+RUN pnpm i
 
 COPY . .
 
+RUN pnpm build
+
 EXPOSE 5173
 
-CMD ["pnpm", "serve"]
+CMD ["pnpm", "start"]

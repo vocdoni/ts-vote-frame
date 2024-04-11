@@ -4,18 +4,22 @@
   "type": "module",
   "scripts": {
     "dev": "frog dev",
-    "serve": "tsx src/index.tsx"
+    "build": "tsup src --dts --format esm",
+    "serve": "tsx src/index.tsx",
+    "start": "node dist/index.js"
   },
   "dependencies": {
     "@hono/node-server": "latest",
     "@vocdoni/sdk": "^0.7.5",
     "frog": "latest",
-    "hono": "^4",
+    "hono": "^4.2.3",
     "hono-og": "^0.0.17",
     "web-worker": "1.2.0"
   },
   "devDependencies": {
-    "tsx": "^4.7.1",
+    "@types/node": "^20.12.7",
+    "tsup": "^8.0.2",
+    "tsx": "^4.7.2",
     "typescript": "latest"
   }
 }
