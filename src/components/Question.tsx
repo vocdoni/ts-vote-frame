@@ -1,6 +1,11 @@
 import { IChoice, IQuestion, PublishedElection } from '@vocdoni/sdk'
 import { Layout } from './Layout'
 
+export type FrameElection = Partial<PublishedElection> & {
+  turnout?: number
+  participation?: number
+}
+
 export const Question = ({
   title,
   question,
@@ -25,7 +30,7 @@ export const Question = ({
   )
 }
 
-export const Results = ({ election }: { election: Partial<PublishedElection> }) => {
+export const Results = ({ election }: { election: Partial<FrameElection> }) => {
   if (!election) return <></>
   if (!election.questions) return <></>
   if (!election.title) return <></>
@@ -53,7 +58,7 @@ export const Results = ({ election }: { election: Partial<PublishedElection> }) 
   const [results] = election.results as string[][]
   // map results to numbers
   const rnum: number[] = results.map((result: string) => parseInt(result, 10))
-  // weights and turn out
+  // weight
   const weight = rnum.reduce((prev, curr) => prev + curr, 0)
 
   return (
@@ -62,8 +67,7 @@ export const Results = ({ election }: { election: Partial<PublishedElection> }) 
         <div tw={`text-${tfs}xl`}>{election.title?.default}</div>
         {weight > 0 ? (
           <div tw={`text-${tfs - 1}xl mt-2 mb-4 flex`}>
-            Votes: {election.voteCount}
-            <Turnout election={election} /> | Weight: {weight}
+            <Participation election={election} weight={weight} />
           </div>
         ) : (
           <>{/* vercel-og has serious issues with common react logic */}</>
@@ -96,15 +100,28 @@ export const Results = ({ election }: { election: Partial<PublishedElection> }) 
   )
 }
 
-const Turnout = ({ election }: { election: Partial<PublishedElection> }) => {
-  if (!election.voteCount || !election.maxCensusSize) return <></>
+const Participation = ({
+  election,
+  weight,
+}: {
+  election: Partial<FrameElection>
+  weight: number
+}) => {
+  if (!election.voteCount && !election.participation && !election.turnout) return <></>
 
-  const turnOut = Math.round((election.voteCount / election.maxCensusSize) * 1000) / 10
+  let participation = `Votes: ${election.voteCount}`
 
-  // returning null does not work for some reason
-  if (turnOut <= 1) return <></>
+  if (election.participation) {
+    participation += ` (${Math.trunc(election.participation * 100) / 100}%)`
+  }
 
-  return <> ({turnOut})</>
+  participation += ` | Weight: ${weight}`
+
+  if (election.turnout) {
+    participation += ` (${Math.trunc(election.turnout * 100) / 100}%)`
+  }
+
+  return <> {participation}</>
 }
 
 export const calculateFontSize = (
