@@ -1,12 +1,12 @@
 import { serve } from '@hono/node-server'
 import { serveStatic } from '@hono/node-server/serve-static'
-import { EnvOptions, IChoice, IQuestion, PublishedElection, VocdoniSDKClient } from '@vocdoni/sdk'
+import { EnvOptions, IChoice, IQuestion, VocdoniSDKClient } from '@vocdoni/sdk'
 import { Frog } from 'frog'
 import { devtools } from 'frog/dev'
 import { Context } from 'hono'
 import { ImageResponse } from 'hono-og'
 import { Layout } from './components/Layout'
-import { Question, Results } from './components/Question'
+import { FrameElection, Question, Results } from './components/Question'
 import { APP_BASE_URL, PORT, VOCDONI_ENV } from './constants'
 
 export const app = new Frog({
@@ -28,9 +28,10 @@ type Body = {
   choices: string[]
   results: string[]
   voteCount: number
-  maxCensusSize: number
   error: string
   info: string[]
+  turnout: number
+  participation: number
 }
 
 const getParamsToJson = (c: Context) => {
@@ -40,9 +41,10 @@ const getParamsToJson = (c: Context) => {
     choices: c.req.queries('choice') || [],
     results: c.req.queries('result') || [],
     voteCount: Number(c.req.query('voteCount')) || 0,
-    maxCensusSize: Number(c.req.query('maxCensusSize')) || 0,
     error: c.req.query('error') || '',
     info: c.req.queries('info') || [],
+    participation: Number(c.req.query('participation')) || 0,
+    turnout: Number(c.req.query('turnout')) || 0,
   }
 
   if (body.question.length) {
@@ -71,7 +73,7 @@ const imageGenerationService = (body: Body) => {
       return iresponse(<Question title={body.question} question={question} />)
     }
     case 'results': {
-      const election: Partial<PublishedElection> = {
+      const election: Partial<FrameElection> = {
         title: {
           default: body.question,
         },
@@ -83,7 +85,8 @@ const imageGenerationService = (body: Body) => {
         ],
         results: [body.results],
         voteCount: body.voteCount,
-        maxCensusSize: body.maxCensusSize,
+        participation: body.participation ?? 0,
+        turnout: body.turnout ?? 0,
       }
       return iresponse(<Results election={election} />)
     }
