@@ -43,7 +43,23 @@ curl -X POST -H "Content-Type: application/json" -d '{
 }' "http://localhost:5173/image"
 ```
 
+Optional: `title` changing the default `ERROR` title.
+
 ![error](https://img.frame.vote/image?type=error&error=Invalid%20process%20id)
+
+`votecast`, `alreadyvoted`, `noteligible`
+-----------------------------------------
+
+They all have a title set by default, but you can override it via `title`
+
+```bash
+curl -X POST -H "Content-Type: application/json" -d '{
+  "type": "alreadyvoted",
+  "title": "Dude, you cannot vote twice!"
+}' "http://localhost:5173/image"
+```
+
+![already voted](https://img.frame.vote/image?type=alreadyvoted&title=Dude,%20you%20cannot%20vote%20twice!)
 
 `info`
 ------

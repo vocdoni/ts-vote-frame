@@ -9,17 +9,17 @@
     "start": "node dist/index.js"
   },
   "dependencies": {
-    "@hono/node-server": "latest",
-    "@vocdoni/sdk": "^0.7.5",
-    "frog": "latest",
-    "hono": "^4.2.3",
-    "hono-og": "^0.0.17",
+    "@hono/node-server": "^1.11.1",
+    "@vocdoni/sdk": "^0.8.0",
+    "frog": "^0.9.4",
+    "hono": "^4.3.6",
+    "hono-og": "^0.0.27",
     "web-worker": "1.2.0"
   },
   "devDependencies": {
-    "@types/node": "^20.12.7",
+    "@types/node": "^20.12.11",
     "tsup": "^8.0.2",
-    "tsx": "^4.7.2",
-    "typescript": "latest"
+    "tsx": "^4.10.2",
+    "typescript": "^5.4.5"
   }
 }
