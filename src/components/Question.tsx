@@ -1,36 +1,11 @@
 import { IChoice, IQuestion, PublishedElection } from '@vocdoni/sdk'
+import { Box } from './Layout/Box'
 import { Layout } from './Layout/Layout'
 
 export type FrameElection = Partial<PublishedElection> & {
   turnout?: number
   participation?: number
 }
-
-const Box = ({ style, ...props }: any) => (
-  <div
-    style={{
-      background:
-        'linear-gradient(90.68deg, rgba(255, 255, 255, 0.25) 1.37%, rgba(255, 255, 255, 0.125) 99.55%)',
-      backgroundFilter: 'blur(8px)',
-      borderRadius: '12px',
-      boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
-      color: 'white',
-      padding: '20px',
-      fontFamily: 'Inter',
-      fontWeight: 700,
-      lineHeight: 1.1,
-      maxWidth: '600px',
-      display: 'flex',
-      flexDirection: 'column',
-      textAlign: 'left',
-      position: 'relative',
-      border: '1px solid rgba(255, 255, 255, 0.15)',
-      borderBottom: 'none',
-      ...style,
-    }}
-    {...props}
-  />
-)
 
 export const Question = ({
   title,
@@ -43,20 +18,31 @@ export const Question = ({
     <Box tw='w-full text-xl my-6 mx-0'>{title}</Box>
     <div tw='flex flex-col mx-auto mx-0'>
       {question.choices.map((choice, i) => (
-        <div tw='flex flex-row text-base mb-6'>
-          <Box
-            tw='mr-6 text-3xl w-20 justify-center items-center'
-            style={{ paddingTop: 0, paddingBottom: 0 }}
-          >
-            {'ABCDEFGH'[i]}
-          </Box>
-          <Box tw='w-full text-xl' style={{ fontWeight: 400 }}>
-            {choice.title.default}
-          </Box>
-        </div>
+        <Choice i={i} title={choice.title.default} />
       ))}
     </div>
   </Layout>
+)
+
+type ChoiceProps = Hono.IntrinsicElements['div'] & {
+  i: number
+  title: string
+  percent?: number
+}
+
+const Choice = ({ i, title, percent, ...props }: ChoiceProps) => (
+  <div tw='flex flex-row text-base mb-6' {...props}>
+    <Box
+      tw='mr-6 text-3xl w-20 justify-center items-center'
+      style={{ paddingTop: 0, paddingBottom: 0 }}
+    >
+      {'ABCDEFGH'[i]}
+    </Box>
+    <Box tw='w-full text-xl' style={{ fontWeight: 400 }}>
+      {percent !== undefined && `${percent.toString()}%: `}
+      {title}
+    </Box>
+  </div>
 )
 
 export const Results = ({ election }: { election: Partial<FrameElection> }) => {
@@ -86,11 +72,11 @@ export const Results = ({ election }: { election: Partial<FrameElection> }) => {
               {question.choices.map((choice: IChoice, i: number) => {
                 const percent = Math.round((rnum[i] / weight) * 1000) / 10
                 return (
-                  <li tw='flex-col mb-2'>
+                  <li tw='flex-col mb-6'>
                     <span tw='flex-row my-1'>
                       <span tw='mr-1 font-bold'>{'ABCDEFGH'[i]}</span>
                       <span>
-                        - {percent}%: {choice.title.default}
+                        - {percent.toString()}%: {choice.title.default}
                       </span>
                     </span>
                     <ProgressBar percent={percent} />
@@ -121,7 +107,7 @@ const Participation = ({
           <span tw='font-normal'>Votes</span>
           <span tw='text-3xl'>
             {election.voteCount}
-            {election.participation !== undefined && (
+            {election.participation !== undefined && election.participation && (
               <span tw='text-2xl ml-2'>({Math.trunc(election.participation * 100) / 100}%)</span>
             )}
           </span>
@@ -131,7 +117,7 @@ const Participation = ({
         <span tw='font-normal'>Weight</span>
         <span tw='text-3xl'>
           {weight}
-          {election.turnout !== undefined && (
+          {election.turnout !== undefined && election.turnout && (
             <span tw='text-2xl ml-2'> ({Math.trunc(election.turnout * 100) / 100}%)</span>
           )}
         </span>
