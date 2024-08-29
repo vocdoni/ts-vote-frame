@@ -10,6 +10,7 @@ import AlreadyVoted from './components/Layout/AlreadyVoted'
 import Error from './components/Layout/Error'
 import { Layout } from './components/Layout/Layout'
 import NotEligible from './components/Layout/NotEligible'
+import Preview from './components/Layout/Preview'
 import VoteCast from './components/Layout/VoteCast'
 import { FrameElection, Question, Results } from './components/Question'
 import { PORT, VOCDONI_ENV } from './constants'
@@ -63,6 +64,7 @@ type BodyType =
   | 'alreadyvoted'
   | 'votecast'
   | 'noteligible'
+  | 'preview'
 
 type Body = {
   type: BodyType
@@ -75,6 +77,8 @@ type Body = {
   turnout: number
   participation: number
   title: string
+  ends: string
+  ended: boolean
 }
 
 const getParamsToJson = (c: Context) => {
@@ -89,6 +93,8 @@ const getParamsToJson = (c: Context) => {
     participation: Number(c.req.query('participation')) || 0,
     turnout: Number(c.req.query('turnout')) || 0,
     title: c.req.query('title') || '',
+    ends: c.req.query('ends') || '',
+    ended: c.req.query('ended') || false,
   }
 
   if (body.question.length) {
@@ -145,6 +151,10 @@ const imageGenerationService = (body: Body) => {
 
     case 'alreadyvoted': {
       return iresponse(<AlreadyVoted title={body.title} />)
+    }
+
+    case 'preview': {
+      return iresponse(<Preview title={body.question} ends={body.ends} ended={body.ended} />)
     }
 
     case 'votecast': {
