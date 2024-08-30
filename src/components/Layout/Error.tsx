@@ -4,7 +4,7 @@ import { Layout } from './Layout'
 
 type ErrorProps = {
   title?: string
-  children: ReactNode
+  children?: ReactNode
 }
 
 const Error = ({ children, title, ...props }: ErrorProps) => (

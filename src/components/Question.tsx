@@ -1,4 +1,5 @@
 import { IChoice, IQuestion, PublishedElection } from '@vocdoni/sdk'
+import { JSX } from 'hono/jsx'
 import { Box } from './Layout/Box'
 import { Layout } from './Layout/Layout'
 
@@ -24,7 +25,7 @@ export const Question = ({
   </Layout>
 )
 
-type ChoiceProps = Hono.IntrinsicElements['div'] & {
+type ChoiceProps = JSX.IntrinsicElements['div'] & {
   i: number
   title: string
   percent?: number

@@ -94,7 +94,7 @@ const getParamsToJson = (c: Context) => {
     turnout: Number(c.req.query('turnout')) || 0,
     title: c.req.query('title') || '',
     ends: c.req.query('ends') || '',
-    ended: c.req.query('ended') || false,
+    ended: c.req.query('ended') === 'true' || false,
   }
 
   if (body.question.length) {
@@ -112,7 +112,7 @@ const getParamsToJson = (c: Context) => {
 
   return body
 }
-const iresponse = (contents: JSX.Element) => new ImageResponse(contents, imageOptions)
+const iresponse = (contents: any) => new ImageResponse(contents, imageOptions)
 
 const imageGenerationService = (body: Body) => {
   switch (body.type) {
