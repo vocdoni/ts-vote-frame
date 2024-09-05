@@ -101,6 +101,9 @@ const Participation = ({
 }) => {
   if (!election.voteCount && !election.participation && !election.turnout) return <></>
 
+  const participation = Math.round((election.participation || 0) * 100) / 100
+  const turnout = Math.round((election.turnout || 0) * 100) / 100
+
   return (
     <div tw='flex flex-row mt-4'>
       {election.voteCount !== undefined && (
@@ -108,9 +111,7 @@ const Participation = ({
           <span tw='font-normal'>Votes</span>
           <span tw='text-3xl'>
             {election.voteCount}
-            {election.participation !== undefined && election.participation && (
-              <span tw='text-2xl ml-2'>({Math.trunc(election.participation * 100) / 100}%)</span>
-            )}
+            {participation && <span tw='text-2xl ml-2'>({participation.toString()}%)</span>}
           </span>
         </span>
       )}
@@ -118,9 +119,7 @@ const Participation = ({
         <span tw='font-normal'>Weight</span>
         <span tw='text-3xl'>
           {weight}
-          {election.turnout !== undefined && election.turnout && (
-            <span tw='text-2xl ml-2'> ({Math.trunc(election.turnout * 100) / 100}%)</span>
-          )}
+          {turnout && <span tw='text-2xl ml-2'> ({turnout.toString()}%)</span>}
         </span>
       </span>
     </div>
